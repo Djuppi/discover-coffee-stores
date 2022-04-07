@@ -8,6 +8,7 @@ export default function Home() {
   const handleOnBannerBtnClick = () => {
     console.log("Hey banner button");
   }
+  
   return (
     <div className={styles.container}>
       <Head>
@@ -18,6 +19,9 @@ export default function Home() {
 
       <main className={styles.main}>
         <Banner buttonText="View shops nearby" handleOnClick={handleOnBannerBtnClick} />
+        <figure className={styles.heroImage}>
+          <Image src="/static/hero-image__small.png" width="600" height="400"/>
+        </figure>
       </main>
     </div>
   )
