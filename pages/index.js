@@ -4,12 +4,12 @@ import styles from '../styles/Home.module.css'
 import Banner from '../components/banner';
 import Card from '../components/card';
 
-import coffeeStores from '../data/coffee-stores.json';
+import coffeeStoresData from '../data/coffee-stores.json';
 export const getStaticProps = async () => {
 
   return {
     props: {
-      coffeeStores,
+      coffeeStores: coffeeStoresData,
     }
   }
 } 
