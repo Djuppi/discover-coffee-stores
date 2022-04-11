@@ -6,25 +6,28 @@ import Image from 'next/image';
 import styles from '../../styles/coffee-store.module.css';
 import cls from 'classnames';
 
-import coffeeStoresData from '../../data/coffee-stores.json';
+import { fetchCoffeeStores } from '../../lib/coffee-stores';
 
-export const getStaticProps = ({params}) => {
+export const getStaticProps = async ({params}) => {
+  const coffeeStores = await fetchCoffeeStores();
   console.log(params)
   return {
     props: {
-      coffeeStore: coffeeStoresData.find(coffeeStore => coffeeStore.id == params.id)
+      coffeeStore: coffeeStores.find(coffeeStore => coffeeStore.fsq_id == params.id)
     }
   }
 }
 
-export const getStaticPaths = () => {
-  const paths = coffeeStoresData.map(coffeeStore => {
+export const getStaticPaths = async () => {
+  const coffeeStores = await fetchCoffeeStores();
+  const paths = coffeeStores.map(coffeeStore => {
     return {
       params: {
-        id: coffeeStore.id.toString()
+        id: coffeeStore.fsq_id
       }
     }
   })
+  console.log(paths);
 
   return {
     paths,
@@ -43,7 +46,7 @@ export default function CoffeeStore({coffeeStore}) {
     console.log("Upvote");
   }
 
-  const { name, address, neighbourhood, imgUrl } = coffeeStore;
+  const { name, location: {address, neighborhood}, imgUrl } = coffeeStore;
 
   return (
     <div className={styles.layout}>
@@ -58,17 +61,19 @@ export default function CoffeeStore({coffeeStore}) {
           <div className={styles.nameWrapper}>
             <h1 className={styles.name}>{name}</h1>
           </div>
-          <Image src={imgUrl} width={600} height={360} className={styles.storeImg} alt={name} /> 
+          <Image src={imgUrl || "https://images.unsplash.com/photo-1498804103079-a6351b050096?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=2468&q=80"} width={600} height={360} className={styles.storeImg} alt={name} /> 
         </div>
         <div className={cls("glass", styles.col2)}>
           <div className={styles.iconWrapper}>
             <Image src="/static/icons/places.svg" width={24} height={24} />
             <p className={styles.text}>{address}</p>
           </div>
+          {neighborhood && (
           <div className={styles.iconWrapper}>
             <Image src="/static/icons/nearMe.svg" width={24} height={24} />
-            <p className={styles.text}>{neighbourhood}</p>
+            <p className={styles.text}>{neighborhood[0]}</p>
           </div>
+          )}
           <div className={styles.iconWrapper}>
             <Image src="/static/icons/star.svg" width={24} height={24} />
             <p className={styles.text}>1</p>
