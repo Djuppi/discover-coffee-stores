@@ -55,9 +55,11 @@ export default function CoffeeStore({coffeeStore}) {
       </Head>
       <div className={styles.container}>
         <div className={styles.col1}>
-          <Link href="/">
-            <a>Back to Home</a>
-          </Link>
+          <div className={styles.backToHomeLink}>
+            <Link href="/">
+              <a>← Back to Home</a>
+            </Link>
+          </div>
           <div className={styles.nameWrapper}>
             <h1 className={styles.name}>{name}</h1>
           </div>
