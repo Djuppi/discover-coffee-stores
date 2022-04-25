@@ -3,7 +3,11 @@ import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 import Banner from '../components/banner';
 import Card from '../components/card';
+
+import UseTrackLocation from '../hooks/use-track-location';
 import { fetchCoffeeStores } from '../lib/coffee-stores';
+import { useEffect, useState, useContext } from 'react';
+import { ACTION_TYPES, StoreContext } from './_app';
 
 export const getStaticProps = async () => {
   
@@ -18,8 +22,38 @@ export const getStaticProps = async () => {
 
 export default function Home({coffeeStores}) {
 
+  const { handleTrackLocation, locationErrorMsg, isFindingLocation } = UseTrackLocation();
+
+  const { dispatch, state } = useContext(StoreContext);
+
+  const { nearbyCoffeeStores, latLong } = state;
+
+  // const [nearbyCoffeeStores, setNearbyCoffeeStores] = useState('');
+  const [coffeeStoreError, setCoffeeStoreError] = useState(null);
+
+  useEffect(() => {
+    const setCoffeeStoresByLocation = async () => {
+      if(latLong) {
+        try {
+          console.log(latLong)
+          const fetchedCoffeeStores = await fetchCoffeeStores(latLong, 30);
+          // setNearbyCoffeeStores(fetchedCoffeeStores);
+          dispatch({
+            type: ACTION_TYPES.SET_COFFEE_STORES,
+            payload: {
+              nearbyCoffeeStores: fetchedCoffeeStores,
+            }
+          })
+        } catch(error) {
+          setCoffeeStoreError(error.message)
+        }
+      }
+    }
+    setCoffeeStoresByLocation();
+  }, [latLong])
+
   const handleOnBannerBtnClick = () => {
-    console.log("Hey banner button");
+    handleTrackLocation();
   }
   
   return (
@@ -31,14 +65,35 @@ export default function Home({coffeeStores}) {
       </Head>
 
       <main className={styles.main}>
-        <Banner buttonText="View shops nearby" handleOnClick={handleOnBannerBtnClick} />
+        <Banner buttonText={isFindingLocation ? "Locating..." : "View shops nearby"} handleOnClick={handleOnBannerBtnClick} />
+        {locationErrorMsg && <p>Something went wrong: {locationErrorMsg}</p>}
+        {coffeeStoreError && <p>Something went wrong: {coffeeStoreError}</p>}
         <figure className={styles.heroImage}>
           <Image src="/static/hero-image__small.png" width="600" height="400"/>
         </figure>
+
+        {nearbyCoffeeStores.length > 0 && (
+          <div className={styles.sectionWrapper}>
+            <h2 className={styles.heading2}>Nearby Coffee Stores</h2>
+            <div className={styles.cardLayout}>
+              {nearbyCoffeeStores.map(coffeeStore => {
+                return (
+                <Card
+                  key={coffeeStore.fsq_id}
+                  className={styles.card} 
+                  name={coffeeStore.name} 
+                  imgUrl={coffeeStore.imgUrl}
+                  href={`/coffee-store/${coffeeStore.fsq_id}`} 
+                />
+                )
+              })}
+            </div>
+          </div>
+        )}
         
         {coffeeStores.length > 0 && (
-          <>
-            <h2 className={styles.heading2}>Toronto Coffee Stores</h2>
+          <div className={styles.sectionWrapper}>
+            <h2 className={styles.heading2}>Oslo Coffee Stores</h2>
             <div className={styles.cardLayout}>
               {coffeeStores.map(coffeeStore => {
                 return (
@@ -52,7 +107,7 @@ export default function Home({coffeeStores}) {
                 )
               })}
             </div>
-          </>
+          </div>
         )}
       </main>
     </div>
