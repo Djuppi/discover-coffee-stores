@@ -9,13 +9,13 @@ import { isEmpty } from '../../utils';
 
 import { fetchCoffeeStores } from '../../lib/coffee-stores';
 import { useContext, useState, useEffect } from 'react';
-import { StoreContext } from '../_app';
+import { StoreContext } from '../../store/store-context';
 
 export const getStaticProps = async ({params}) => {
   const coffeeStores = await fetchCoffeeStores();
 
   const findCoffeeStoreById = coffeeStores.find(coffeeStore => coffeeStore.fsq_id == params.id);
-  console.log(findCoffeeStoreById)
+  console.log(params.id)
 
   return {
     props: {
@@ -32,7 +32,7 @@ export const getStaticPaths = async () => {
         id: coffeeStore.fsq_id
       }
     }
-  })
+  });
 
   return {
     paths,
@@ -40,12 +40,14 @@ export const getStaticPaths = async () => {
   }
 }
 
-export default function CoffeeStore(initialProps) {
+const CoffeeStore = (initialProps) => {
   const router = useRouter();
+  //console.log({initialProps})
 
-  if(router.isFallback) {
-    return <div>Loading...</div>
-  }
+  const id = router.query.id;
+  //console.log({id})
+
+  const [coffeeStore, setCoffeeStore] = useState(initialProps.coffeeStore);
 
   const {
     state: {
@@ -53,17 +55,16 @@ export default function CoffeeStore(initialProps) {
     }
   } = useContext(StoreContext);
 
-
-
-  const { id } = router.query;
-
-  const [coffeeStore, setCoffeeStore] = useState(initialProps.coffeeStore);
+  if(router.isFallback) {
+    return <div>Loading...</div>
+  }
 
   useEffect(() => {
+    //console.log(initialProps.coffeeStore)
     if(isEmpty(initialProps.coffeeStore)) {
-      if(coffeeStore.length > 0 ) {
-        const findCoffeeStoreById = nearbyCoffeeStores.find(coffeeStore => coffeeStore.fsq_id == id);
-        setCoffeeStore(findCoffeeStoreById);
+      if(nearbyCoffeeStores.length > 0 ) {
+        const coffeeStoresFromContext = nearbyCoffeeStores.find(coffeeStore => coffeeStore.fsq_id == id);
+        setCoffeeStore(coffeeStoresFromContext);
       }
     }
   }, [id])
@@ -115,3 +116,5 @@ export default function CoffeeStore(initialProps) {
     </div>
   )
 }
+
+export default CoffeeStore;
