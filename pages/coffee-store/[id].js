@@ -11,41 +11,41 @@ import { fetchCoffeeStores } from '../../lib/coffee-stores';
 import { useContext, useState, useEffect } from 'react';
 import { StoreContext } from '../../store/store-context';
 
-export const getStaticProps = async ({params}) => {
+export async function getStaticProps(staticProps) {
+  const params = staticProps.params;
+
+
   const coffeeStores = await fetchCoffeeStores();
-
-  const findCoffeeStoreById = coffeeStores.find(coffeeStore => coffeeStore.fsq_id == params.id);
-  console.log(params.id)
-
+  console.log({coffeeStores})
+  const findCoffeeStoreById = coffeeStores.find((coffeeStore) => {
+    return coffeeStore.fsq_id.toString() === params.id; //dynamic id
+  });
   return {
     props: {
-      coffeeStore: findCoffeeStoreById ? findCoffeeStoreById : {}
-    }
-  }
+      coffeeStore: findCoffeeStoreById ? findCoffeeStoreById : {},
+    },
+  };
 }
 
-export const getStaticPaths = async () => {
+export async function getStaticPaths() {
   const coffeeStores = await fetchCoffeeStores();
-  const paths = coffeeStores.map(coffeeStore => {
+  const paths = coffeeStores.map((coffeeStore) => {
     return {
       params: {
-        id: coffeeStore.fsq_id
-      }
-    }
+        id: coffeeStore.fsq_id.toString(),
+      },
+    };
   });
-
   return {
     paths,
-    fallback: true
-  }
+    fallback: true,
+  };
 }
 
 const CoffeeStore = (initialProps) => {
   const router = useRouter();
-  //console.log({initialProps})
 
   const id = router.query.id;
-  //console.log({id})
 
   const [coffeeStore, setCoffeeStore] = useState(initialProps.coffeeStore);
 
@@ -60,20 +60,19 @@ const CoffeeStore = (initialProps) => {
   }
 
   useEffect(() => {
-    //console.log(initialProps.coffeeStore)
     if(isEmpty(initialProps.coffeeStore)) {
       if(nearbyCoffeeStores.length > 0 ) {
         const coffeeStoresFromContext = nearbyCoffeeStores.find(coffeeStore => coffeeStore.fsq_id == id);
         setCoffeeStore(coffeeStoresFromContext);
       }
     }
-  }, [id])
+  }, [id, initialProps.coffeeStore, coffeeStore])
 
     const handleUpvoteButton = () => {
     console.log("Upvote");
   }
-
-  const { name, location: {address, neighborhood}, imgUrl } = coffeeStore;
+  console.log({coffeeStore})
+  const { name, location: {address, neighborhood, formatted_address}, imgUrl } = coffeeStore;
 
   return (
     <div className={styles.layout}>
@@ -95,7 +94,7 @@ const CoffeeStore = (initialProps) => {
         <div className={cls("glass", styles.col2)}>
           <div className={styles.iconWrapper}>
             <Image src="/static/icons/places.svg" width={24} height={24} />
-            <p className={styles.text}>{address}</p>
+            <p className={styles.text}>{address || formatted_address}</p>
           </div>
           {neighborhood && (
           <div className={styles.iconWrapper}>
